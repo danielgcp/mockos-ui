@@ -5,10 +5,13 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TranslateService } from '@ngx-translate/core';
 import { finalize, Subscription } from 'rxjs';
 import { LIVE_MOCK_TEMPLATE } from '../../../../../../const/live-mock.const';
+import { LIVE_MOCK_TYPE_DEFINITIONS } from '../../../../../../const/live-mock-types.const';
 import { EditProcessorInterface } from '../../../../../../interfaces/edit-processor.interface';
 import { ProcessorInterface } from '../../../../../../interfaces/processor.interface';
 import { ResponsesService } from '../../../../../../services/responses/responses.service';
 import { openToast } from '../../../../../../utils/toast.utils';
+
+declare var monaco: any;
 
 @Component({
   selector: 'app-live-mock',
@@ -19,6 +22,15 @@ export class LiveMockComponent implements OnDestroy {
   responseSubscription?: Subscription;
 
   saving = false;
+
+  // Monaco editor options with TypeScript language for intellisense
+  editorOptions = {
+    theme: 'vs-dark',
+    language: 'typescript',
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    automaticLayout: true
+  };
 
   liveMockForm = new FormGroup({
     enabled: new FormControl(false),
@@ -45,6 +57,30 @@ export class LiveMockComponent implements OnDestroy {
 
   ngOnDestroy() {
     this.responseSubscription?.unsubscribe();
+  }
+
+  /**
+   * Configure Monaco editor with live mock type definitions for intellisense
+   * @param editor - Monaco editor instance
+   */
+  onMonacoInit(editor: any) {
+    if (monaco && monaco.languages && monaco.languages.typescript) {
+      // Add extra TypeScript library with live mock type definitions
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(
+        LIVE_MOCK_TYPE_DEFINITIONS,
+        'live-mock-globals.d.ts'
+      );
+      
+      // Configure TypeScript compiler options
+      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+        target: monaco.languages.typescript.ScriptTarget.ES2015,
+        allowNonTsExtensions: true,
+        moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+        module: monaco.languages.typescript.ModuleKind.CommonJS,
+        noEmit: true,
+        typeRoots: ['node_modules/@types']
+      });
+    }
   }
 
   handleSave() {

@@ -3,7 +3,8 @@
     <div class="main-content__editor">
       <ngx-monaco-editor
         [formControl]="liveMockForm.controls.code"
-        [options]="{ theme: 'vs-dark', language: 'javascript' }"
+        [options]="editorOptions"
+        (onInit)="onMonacoInit($event)"
       ></ngx-monaco-editor>
     </div>
     <div class="main-content__actions">
